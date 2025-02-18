@@ -96,12 +96,6 @@ exports.Delete_Task = async (req, res) => {
         message: `Task with id ${id} not found`
     })
   }
-
-  await prisma.task.delete({
-    where: {
-      id: parseInt(id)
-    }
-  })
   
   await prisma.task.delete({
     where: { id: parseInt(id) }
