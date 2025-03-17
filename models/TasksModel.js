@@ -36,6 +36,21 @@ const TaskSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
+// Add list_id to Task
+TaskSchema.pre('save', async function (next) {
+    const list = await this.model('List').findByIdAndUpdate(this.list_id, {
+        $push: { tasks: this._id }
+    })
+    next();
+});
+
+// remove task from list
+TaskSchema.pre('remove', async function (next) {
+    await this.model('List').findByIdAndUpdate(this.list_id, {
+        $pull: { tasks: this._id }
+    })
+    next();
+});
 
 
 module.exports = mongoose.model('Task', TaskSchema);

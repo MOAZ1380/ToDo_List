@@ -19,7 +19,7 @@ exports.allowedTo = asyncHandler(async (req, res, next) => {
 
 // Generate token
 const generateToken = (user, expired) => {
-    return jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET, {
+    return jwt.sign({ userId: user._id, email: user.email}, process.env.JWT_SECRET, {
         expiresIn: expired,
     });
 };
@@ -106,7 +106,7 @@ exports.VerifyCode = asyncHandler(async (req, res, next) => {
 
     let expire;
 
-    if (req.route.path === '/api/auth/VerifySignup') {
+    if (req.route === '/api/auth/VerifySignup') { // wrong path
         expire = '7d';
     } else {
         expire = '1m'; 

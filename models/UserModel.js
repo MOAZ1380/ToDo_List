@@ -50,8 +50,15 @@ const UserSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
+
 UserSchema.pre('find', function () {
     this.populate('list_id');
+    this.select('-password -verificationCode -otpExpire -passwordChangedAt -__v');
+});
+
+UserSchema.pre('findOne', function () {
+    this.populate('list_id');
+    this.select('-password -verificationCode -otpExpire -passwordChangedAt -__v');
 });
 
 module.exports = mongoose.model('User', UserSchema);

@@ -7,12 +7,17 @@ const {
     Login,
     ForgetPassword,
     ResetPassword
-    } = require('../services/authService');
+} = require('../services/authService');
+
+const {
+    signUpValidator,
+    ResetPasswordValidator,
+} = require('../utlis/validator/AuthValidator');
 
 
 
 router.route('/signup')
-    .post(Signup)
+    .post(signUpValidator, Signup)
     
 router.route('/VerifySignup')
     .post(VerifyCode)
@@ -27,7 +32,7 @@ router.route('/VerifyForgetPassword')
     .post(VerifyCode)
 
 router.route('/ResetPassword')
-    .post(verifyToken, ResetPassword)
+    .post(verifyToken, ResetPasswordValidator , ResetPassword)
 
     
     

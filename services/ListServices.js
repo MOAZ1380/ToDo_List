@@ -1,24 +1,28 @@
 const ApiError = require('../utlis/ApiError');
 const AsyncHandler = require('express-async-handler');
+const factory = require('./handlersFactory');
 
 const User = require('../models/UserModel');
 const List = require('../models/ListsModel');
+const Task = require('../models/TasksModel');
 
 
-
-exports.createList = AsyncHandler(
-    async (req, res) => {
+exports.AddUser_Id = (req, res, next) => {
+    if (!req.body.User_id) {
         req.body.User_id = req.user._id;
-        const newList = await List.create(req.body);
-        const user = await User.findById(req.user._id);
-        
-        user.list_id.push(newList._id);
-        await user.save();
-        res.status(201).json({ status: "success", data: newList });
-});
+    }
+    next();
+}
+
+// @desc    create List
+// @route   GET /api/list
+// @access  private/User
+exports.createList = factory.CreateOne(List);
 
 
-
+// @desc    Get Lists
+// @route   GET /api/list
+// @access  private/User
 exports.getLists = AsyncHandler(
     async (req, res) => {
         const page = parseInt(req.query.page) || 1;
@@ -38,46 +42,38 @@ exports.getLists = AsyncHandler(
 });
 
 
+// @desc    Get specific List
+// @route   GET /api/list/:id
+// @access  private/User
+exports.getList = factory.getOne(List);
 
-exports.getList = AsyncHandler(
-    async (req, res, next) => {
-        const list = await List.findById(req.params.id);
-        if (!list) {
-            return next(new ApiError(404, 'list not found'));
-        }
-        res.status(200).json({ status: "success", data: list});
-});
-
-
-
-exports.UpdateList = AsyncHandler(
-    async(req, res, next) => {
-        const { id } = req.params
-        const updateList = await List.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
-
-        if (!updateList) {
-            return next(new ApiError(404, 'list not found'));
-        }
-        res.status(200).json({ status: "success", data: updateList });
-});
+// @desc    Update specific List
+// @route   GET /api/list/:id
+// @access  private/User
+exports.UpdateList = factory.UpdateOne(List);
 
 
-
-
+// @desc    Delete specific List
+// @route   GET /api/list/:id
+// @access  private/User
 exports.DeleteList = AsyncHandler(async (req, res, next) => {
+    console.log("req.user:", req.user);
+    if (!req.user) {
+        return next(new ApiError(401, 'User not authenticated'));
+    }
+    
     const { id } = req.params;
+    const deleteList = await List.findOneAndDelete({ _id: id });
 
-    const deleteList = await List.findByIdAndDelete(id);
     if (!deleteList) {
         return next(new ApiError(404, 'List not found'));
     }
 
-    const user = await User.findById(req.user._id);
-    if (!user) {
-        return next(new ApiError(404, 'User not found'));
-    }
-    user.list_id = user.list_id.filter(list => list.toString() !== id);
-    await user.save();
+    await Task.deleteMany({ list_id: id });
+
+    await User.findByIdAndUpdate(req.user._id, { $pull: { list_id: id } });
 
     res.status(200).json({ status: "success", message: "List and its tasks deleted successfully" });
 });
+
+

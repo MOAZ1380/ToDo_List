@@ -1,29 +1,36 @@
 const express = require('express');
 const verifyToken = require('../middleware/verifyToken');
-
-// const TaskRoute = require('./TaskRoute');
+const TaskRoute = require('./TaskRoute');
 
 const { 
     createList,
     getList,
     getLists,
     DeleteList,
-    UpdateList
+    UpdateList,
+    AddUser_Id
     } = require('../services/ListServices')
+
+const { 
+    CreateListValidator,
+    UpdateListValidator,
+    GetListValidator,
+    DeleteListValidator,
+ } = require('../utlis/validator/ListsValidator');
 
 const router = express.Router();
 
-// router.use('/:listId/task', TaskRoute);
+router.use('/:listId/task', TaskRoute);
 
 
 
 router.route('/')
-    .post(verifyToken, createList)
+    .post(verifyToken, CreateListValidator,  AddUser_Id, createList)
     .get(verifyToken, getLists);
 
 router.route('/:id')
-    .get(verifyToken, getList)
-    .put(verifyToken, UpdateList)
-    .delete(verifyToken, DeleteList)
+    .get(verifyToken, GetListValidator, getList)
+    .put(verifyToken, UpdateListValidator, UpdateList)
+    .delete(verifyToken, DeleteListValidator, DeleteList)
 
 module.exports = router;

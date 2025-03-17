@@ -1,12 +1,12 @@
 const express = require('express');
 const morgan = require('morgan');
 require('dotenv').config();
-const mongoose = require('mongoose');
 const ApiError = require('./utlis/ApiError')
 
 const globalError = require('./middleware/errorMiddleware');
+
 // Routes
-// const TaskRoutes = require('./route/TaskRoute');
+const TaskRoutes = require('./route/TaskRoute');
 const ListRoute = require('./route/ListRoute');
 const UserRoute = require('./route/UserRoute');
 const authRoute = require('./route/authRoute');
@@ -31,7 +31,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Routes
-// app.use('/api/task', TaskRoutes);
+app.use('/api/task', TaskRoutes);
 app.use('/api/list', ListRoute);
 app.use('/api/user', UserRoute)
 app.use('/api/auth', authRoute)

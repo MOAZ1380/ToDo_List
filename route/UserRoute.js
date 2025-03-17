@@ -5,23 +5,31 @@ const {
     getUser,
     getUsers,
     UpdateUser,
-    DeleteUser
-     } = require('../services/UserServices');
+    DeleteUser,
+    hashPass
+} = require('../services/UserServices');
+
+const {
+    CreateUserValidator,
+    UpdateUserValidator,
+    DeleteUserValidator,
+    GetUserValidator,
+} = require('../utlis/validator/UserValidator');
 
 const {
     allowedTo,
-    } = require('../services/authService');
+} = require('../services/authService');
 
 const  SetSingleImage  = require('../middleware/Setsingleimage');
 const  verifyToken  = require('../middleware/verifyToken');
 
 router.route('/')
-    .post(verifyToken, allowedTo, SetSingleImage, CreateUser)
+    .post(verifyToken, CreateUserValidator, allowedTo, SetSingleImage, hashPass, CreateUser)
     .get(verifyToken, allowedTo, getUsers)
 
 router.route('/:id')
-    .get(verifyToken, allowedTo, getUser)
-    .put(verifyToken, allowedTo, SetSingleImage, UpdateUser)
-    .delete(verifyToken, allowedTo, DeleteUser)
+    .get(verifyToken, GetUserValidator, allowedTo, getUser)
+    .put(verifyToken, UpdateUserValidator, allowedTo, SetSingleImage, hashPass, UpdateUser)
+    .delete(verifyToken, DeleteUserValidator, allowedTo, DeleteUser)
 
 module.exports = router;
