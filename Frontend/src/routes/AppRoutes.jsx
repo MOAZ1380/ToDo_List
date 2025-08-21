@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import SignIn from "../features/auth/pages/SignIn";
 import SignUp from "../features/auth/pages/SignUp";
 import ForgetPassword from "../features/auth/pages/ForgetPassword";
+import VerifySignupPage from "../features/auth/pages/VerifySignup";
+import VerifyForgetPasswordPage from "../features/auth/pages/VerifyForgetPassword";
+import ResetPasswordPage from "../features/auth/pages/ResetPassword";
 
 export default function AppRoutes() {
 	return (
@@ -11,6 +14,9 @@ export default function AppRoutes() {
 				<Route path="/signin" element={<SignIn />} />
 				<Route path="/signup" element={<SignUp />} />
 				<Route path="/forget" element={<ForgetPassword />} />
+				<Route path="/verify-signup" element={<VerifySignupPage />} />
+				<Route path="/verify-forget" element={<VerifyForgetPasswordPage />} />
+				<Route path="/reset-password" element={<ResetPasswordPage />} />
 			</Routes>
 		</BrowserRouter>
 	);
