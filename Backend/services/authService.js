@@ -149,11 +149,7 @@ exports.VerifyPassword = asyncHandler(async (req, res, next) => {
 // @route   GET /api/auth/login
 // @access  Public
 exports.Login = asyncHandler(async (req, res, next) => {
-	console.log(req.route.path);
-
 	const { email, password } = req.body;
-
-	console.log(email, password);
 
 	const user = await User.findOne({ email });
 	if (!user) return next(new ApiError(400, "User not found"));
