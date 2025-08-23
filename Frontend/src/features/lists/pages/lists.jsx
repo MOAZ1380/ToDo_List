@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { findAll, create, deleteList, updateList } from "../listApi";
+import { findAll, create, deleteList, updateList } from "../services/listApi";
 
 const Lists = () => {
 	const [lists, setLists] = useState([]);

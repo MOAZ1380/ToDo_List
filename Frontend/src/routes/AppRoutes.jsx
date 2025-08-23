@@ -5,7 +5,7 @@ import ForgetPassword from "../features/auth/pages/ForgetPassword";
 import VerifySignupPage from "../features/auth/pages/VerifySignup";
 import VerifyForgetPasswordPage from "../features/auth/pages/VerifyForgetPassword";
 import ResetPasswordPage from "../features/auth/pages/ResetPassword";
-import Lists from "../features/lists/services/pages/lists";
+import Lists from "../features/lists/pages/lists";
 
 export default function AppRoutes() {
 	return (
