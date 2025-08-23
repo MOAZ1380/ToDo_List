@@ -6,6 +6,7 @@ import VerifySignupPage from "../features/auth/pages/VerifySignup";
 import VerifyForgetPasswordPage from "../features/auth/pages/VerifyForgetPassword";
 import ResetPasswordPage from "../features/auth/pages/ResetPassword";
 import Lists from "../features/lists/pages/lists";
+import Task from "../features/tasks/pages/Task";
 
 export default function AppRoutes() {
 	return (
@@ -21,6 +22,9 @@ export default function AppRoutes() {
 				<Route path="/reset-password" element={<ResetPasswordPage />} />
 				{/* route --> list */}
 				<Route path="/lists" element={<Lists />} />
+
+				{/* route --> task */}
+				<Route path="/lists/:listId/tasks" element={<Task />} />
 			</Routes>
 		</BrowserRouter>
 	);

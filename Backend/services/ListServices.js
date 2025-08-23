@@ -70,7 +70,7 @@ exports.DeleteList = AsyncHandler(async (req, res, next) => {
 	}
 
 	const { id } = req.params;
-	const deleteList = await List.findOneAndDelete({ _id: id });
+	const deleteList = await List.findByIdAndDelete(id);
 
 	if (!deleteList) {
 		return next(new ApiError(404, "List not found"));

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { findAll, create, deleteList, updateList } from "../services/listApi";
 
 const Lists = () => {
@@ -80,7 +81,7 @@ const Lists = () => {
 		if (!selectedList) return;
 		setSelectedListId(id);
 		setUpdateTitle(selectedList.title);
-		setModalError(null); // ⬅️ نظف الخطأ قبل الفتح
+		setModalError(null);
 		setIsModalOpen(true);
 	};
 
@@ -122,7 +123,7 @@ const Lists = () => {
 					</p>
 				</div>
 
-				{/* Error (عام) */}
+				{/* Error */}
 				{error && (
 					<div className="bg-red-100 border border-red-300 text-red-600 px-4 py-2 rounded-lg text-sm shadow-sm">
 						{error}
@@ -178,58 +179,63 @@ const Lists = () => {
 				) : (
 					<div className="grid md:grid-cols-2 gap-6">
 						{lists.map((list) => (
-							<div
+							<Link
+								to={`/lists/${list._id}/tasks`}
 								key={list._id}
-								onClick={() => setSelectedListId(list._id)}
-								className={`cursor-pointer bg-white rounded-2xl shadow-md hover:shadow-xl transition transform p-6 border ${
-									selectedListId === list._id
-										? "border-indigo-500 ring-2 ring-indigo-300"
-										: "border-gray-100"
-								}`}>
-								<div className="flex justify-between items-start">
-									<div>
-										<h2 className="text-xl font-bold text-indigo-600 mb-1">
-											{list.title}
-										</h2>
-										<p className="text-gray-500 text-sm">
-											Tasks:{" "}
-											<span className="font-semibold text-gray-800">
-												{list.tasks?.length || 0}
-											</span>
+								className="block">
+								<div
+									className={`cursor-pointer bg-white rounded-2xl shadow-md hover:shadow-xl transition transform p-6 border ${
+										selectedListId === list._id
+											? "border-indigo-500 ring-2 ring-indigo-300"
+											: "border-gray-100"
+									}`}>
+									<div className="flex justify-between items-start">
+										<div>
+											<h2 className="text-xl font-bold text-indigo-600 mb-1">
+												{list.title}
+											</h2>
+											<p className="text-gray-500 text-sm">
+												Tasks:{" "}
+												<span className="font-semibold text-gray-800">
+													{list.tasks?.length || 0}
+												</span>
+											</p>
+										</div>
+										<div className="text-gray-400 text-xs text-right">
+											<p>{new Date(list.createdAt).toLocaleDateString()}</p>
+											<p>{new Date(list.createdAt).toLocaleTimeString()}</p>
+										</div>
+									</div>
+
+									{/* Buttons */}
+									<div className="flex gap-3 mt-4">
+										<button
+											onClick={(e) => {
+												e.preventDefault(); // ⬅️ مهم علشان يمنع الـ Link
+												e.stopPropagation();
+												openUpdateModal(list._id);
+											}}
+											className="px-4 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm shadow">
+											✏ Update
+										</button>
+										<button
+											onClick={(e) => {
+												e.preventDefault();
+												e.stopPropagation();
+												handleDelete(list._id);
+											}}
+											className="px-4 py-1 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm shadow">
+											🗑 Delete
+										</button>
+									</div>
+
+									{selectedListId === list._id && (
+										<p className="mt-2 text-xs text-indigo-600 font-medium">
+											✔ Selected
 										</p>
-									</div>
-									<div className="text-gray-400 text-xs text-right">
-										<p>{new Date(list.createdAt).toLocaleDateString()}</p>
-										<p>{new Date(list.createdAt).toLocaleTimeString()}</p>
-									</div>
+									)}
 								</div>
-
-								{/* Buttons */}
-								<div className="flex gap-3 mt-4">
-									<button
-										onClick={(e) => {
-											e.stopPropagation();
-											openUpdateModal(list._id);
-										}}
-										className="px-4 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm shadow">
-										✏ Update
-									</button>
-									<button
-										onClick={(e) => {
-											e.stopPropagation();
-											handleDelete(list._id);
-										}}
-										className="px-4 py-1 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm shadow">
-										🗑 Delete
-									</button>
-								</div>
-
-								{selectedListId === list._id && (
-									<p className="mt-2 text-xs text-indigo-600 font-medium">
-										✔ Selected
-									</p>
-								)}
-							</div>
+							</Link>
 						))}
 					</div>
 				)}
@@ -262,7 +268,6 @@ const Lists = () => {
 							Update List Title
 						</h2>
 
-						{/* Error (خاص بالـ Modal) */}
 						{modalError && (
 							<div className="bg-red-100 border border-red-300 text-red-600 px-3 py-2 rounded-lg text-sm mb-3">
 								{modalError}
