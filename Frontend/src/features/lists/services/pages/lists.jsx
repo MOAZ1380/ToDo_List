@@ -14,10 +14,11 @@ const Lists = () => {
 
 	const [selectedListId, setSelectedListId] = useState(null);
 
-	// state للتحكم في المودال
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [updateTitle, setUpdateTitle] = useState("");
+	const [modalError, setModalError] = useState(null);
 
+	// 🟢 fetch lists
 	useEffect(() => {
 		const fetchLists = async () => {
 			try {
@@ -29,8 +30,8 @@ const Lists = () => {
 					fields: "title,tasks,createdAt",
 				});
 				if (response.data?.status === "success") {
-					setLists(response.data.data);
-					setTotal(response.data.total || response.data.results);
+					setLists(Array.isArray(response.data.data) ? response.data.data : []);
+					setTotal(response.data.total || response.data.results || 0);
 				}
 			} catch {
 				setError("Failed to fetch lists. Please try again.");
@@ -39,6 +40,7 @@ const Lists = () => {
 		fetchLists();
 	}, [search, sortOrder, page, limit]);
 
+	// 🟢 add list
 	const handleAddList = async (e) => {
 		e.preventDefault();
 		if (!newTitle.trim()) return;
@@ -48,32 +50,41 @@ const Lists = () => {
 			if (response.data?.status === "success") {
 				setPage(1);
 				setNewTitle("");
+				setLists((prev) => [response.data.data, ...prev]);
 			}
 		} catch {
 			setError("Title must be at least 5 characters and must be unique");
 		}
 	};
 
-	const handleDelete = async () => {
-		if (!selectedListId) return setError("Please select a list to delete.");
+	// 🟢 delete list
+	const handleDelete = async (id) => {
 		try {
-			const response = await deleteList(selectedListId);
+			const response = await deleteList(id);
 			if (response.data?.status === "success") {
-				setLists(lists.filter((list) => list._id !== selectedListId));
-				setSelectedListId(null);
+				setLists(lists.filter((list) => list._id !== id));
+				if (selectedListId === id) setSelectedListId(null);
 			}
 		} catch {
-			setError("Failed to delete list. Please try again.");
+			if (isModalOpen) {
+				setModalError("Failed to delete list. Please try again.");
+			} else {
+				setError("Failed to delete list. Please try again.");
+			}
 		}
 	};
 
-	const openUpdateModal = () => {
-		if (!selectedListId) return setError("Please select a list to update.");
-		const selectedList = lists.find((l) => l._id === selectedListId);
-		setUpdateTitle(selectedList?.title || "");
+	// 🟢 open update modal
+	const openUpdateModal = (id) => {
+		const selectedList = lists.find((l) => l._id === id);
+		if (!selectedList) return;
+		setSelectedListId(id);
+		setUpdateTitle(selectedList.title);
+		setModalError(null); // ⬅️ نظف الخطأ قبل الفتح
 		setIsModalOpen(true);
 	};
 
+	// 🟢 update
 	const handleUpdate = async () => {
 		if (!updateTitle.trim()) return;
 		try {
@@ -89,7 +100,7 @@ const Lists = () => {
 				setIsModalOpen(false);
 			}
 		} catch {
-			setError(
+			setModalError(
 				"Failed to update list. Please ensure the title is unique and at least 5 characters long.",
 			);
 		}
@@ -100,6 +111,7 @@ const Lists = () => {
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-white py-12 px-6">
 			<div className="max-w-5xl mx-auto space-y-10">
+				{/* Header */}
 				<div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
 					<h1 className="text-4xl font-extrabold text-indigo-600 tracking-tight">
 						Your Lists
@@ -110,12 +122,14 @@ const Lists = () => {
 					</p>
 				</div>
 
+				{/* Error (عام) */}
 				{error && (
 					<div className="bg-red-100 border border-red-300 text-red-600 px-4 py-2 rounded-lg text-sm shadow-sm">
 						{error}
 					</div>
 				)}
 
+				{/* Controls */}
 				<div className="flex flex-col md:flex-row md:items-center gap-4">
 					<input
 						type="text"
@@ -158,22 +172,8 @@ const Lists = () => {
 					</form>
 				</div>
 
-				<div className="flex gap-4 justify-end">
-					<button
-						onClick={openUpdateModal}
-						className="px-5 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-xl shadow-md transition disabled:opacity-40"
-						disabled={!selectedListId}>
-						✏️ Update Selected
-					</button>
-					<button
-						onClick={handleDelete}
-						className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl shadow-md transition disabled:opacity-40"
-						disabled={!selectedListId}>
-						🗑 Delete Selected
-					</button>
-				</div>
-
-				{lists.length === 0 ? (
+				{/* Lists */}
+				{lists.length === 0 && page === 1 ? (
 					<p className="text-center text-gray-500 text-lg">No lists found 🚫</p>
 				) : (
 					<div className="grid md:grid-cols-2 gap-6">
@@ -203,6 +203,27 @@ const Lists = () => {
 										<p>{new Date(list.createdAt).toLocaleTimeString()}</p>
 									</div>
 								</div>
+
+								{/* Buttons */}
+								<div className="flex gap-3 mt-4">
+									<button
+										onClick={(e) => {
+											e.stopPropagation();
+											openUpdateModal(list._id);
+										}}
+										className="px-4 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm shadow">
+										✏ Update
+									</button>
+									<button
+										onClick={(e) => {
+											e.stopPropagation();
+											handleDelete(list._id);
+										}}
+										className="px-4 py-1 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm shadow">
+										🗑 Delete
+									</button>
+								</div>
+
 								{selectedListId === list._id && (
 									<p className="mt-2 text-xs text-indigo-600 font-medium">
 										✔ Selected
@@ -213,6 +234,7 @@ const Lists = () => {
 					</div>
 				)}
 
+				{/* Pagination */}
 				<div className="flex justify-center items-center gap-4">
 					<button
 						disabled={page === 1}
@@ -239,6 +261,14 @@ const Lists = () => {
 						<h2 className="text-xl font-semibold text-indigo-600 mb-4">
 							Update List Title
 						</h2>
+
+						{/* Error (خاص بالـ Modal) */}
+						{modalError && (
+							<div className="bg-red-100 border border-red-300 text-red-600 px-3 py-2 rounded-lg text-sm mb-3">
+								{modalError}
+							</div>
+						)}
+
 						<input
 							type="text"
 							value={updateTitle}
