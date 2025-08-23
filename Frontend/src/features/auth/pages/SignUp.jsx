@@ -21,7 +21,7 @@ export default function SignUp() {
 
 		try {
 			await signup({ name, email, password });
-			navigate("/verify-signup"); // بعد التسجيل يروح لصفحة التحقق
+			navigate("/verify-signup");
 		} catch (err) {
 			console.error("Sign-up error:", err);
 			setError("Failed to create an account.");

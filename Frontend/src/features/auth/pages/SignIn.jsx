@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { signin } from "../services/authApi";
 
 export default function SignIn() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
+
+	const navigate = useNavigate();
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -17,8 +19,9 @@ export default function SignIn() {
 		}
 
 		try {
-			await signin({ email, password });
-			// TODO: Navigate to dashboard or homepage
+			const response = await signin({ email, password });
+			localStorage.setItem("token", response.data.token);
+			navigate("/lists");
 		} catch (err) {
 			console.error("Sign-in error:", err);
 			setError("Invalid email or password.");
