@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import {
-	findAll,
-	create,
-	update,
-	remove,
-	complete,
-} from "../services/tasksAPi";
+import { findAll, create, update, remove } from "../services/tasksAPi";
 
 const Tasks = () => {
 	const { listId } = useParams();
@@ -15,11 +9,20 @@ const Tasks = () => {
 	const [newPriority, setNewPriority] = useState("Low");
 	const [error, setError] = useState("");
 
-	// جلب المهام
+	// search + sort
+	const [search, setSearch] = useState("");
+	const [sortPriority, setSortPriority] = useState("");
+
+	// fetch tasks
 	useEffect(() => {
 		const fetchTasks = async () => {
 			try {
-				const res = await findAll(listId, { sort: "-createdAt" });
+				const options = {};
+
+				if (search) options.search = search;
+				if (sortPriority) options.sort = sortPriority;
+
+				const res = await findAll(listId, options);
 				if (res.data?.status === "success") {
 					setTasks(res.data.data || []);
 				}
@@ -28,9 +31,9 @@ const Tasks = () => {
 			}
 		};
 		fetchTasks();
-	}, [listId]);
+	}, [listId, search, sortPriority]);
 
-	// إنشاء تاسك
+	// create task
 	const handleCreate = async (e) => {
 		e.preventDefault();
 		if (!newTask.trim()) return;
@@ -47,11 +50,11 @@ const Tasks = () => {
 				setNewPriority("Low");
 			}
 		} catch {
-			setError("⚠️ Failed to create task.");
+			setError("⚠️ task must be at least 5 characters long.");
 		}
 	};
 
-	// حذف
+	// delete
 	const handleDelete = async (id) => {
 		try {
 			await remove(listId, id);
@@ -61,10 +64,18 @@ const Tasks = () => {
 		}
 	};
 
-	// إكمال
+	// toggle complete
 	const handleComplete = async (id) => {
 		try {
-			const res = await complete(listId, id);
+			const task = tasks.find((t) => t._id === id);
+			const newCompleted = !task.completed;
+			const newStatus = newCompleted ? "Completed" : "Pending";
+
+			const res = await update(listId, id, {
+				completed: newCompleted,
+				status: newStatus,
+			});
+
 			if (res.data?.status === "success") {
 				setTasks((prev) => prev.map((t) => (t._id === id ? res.data.data : t)));
 			}
@@ -73,7 +84,7 @@ const Tasks = () => {
 		}
 	};
 
-	// تحديث الأولوية
+	// update priority
 	const handleUpdatePriority = async (id, priority) => {
 		try {
 			const res = await update(listId, id, { priority });
@@ -89,7 +100,7 @@ const Tasks = () => {
 		<div className="min-h-screen bg-gray-50 p-6">
 			<div className="max-w-3xl mx-auto">
 				<h1 className="text-3xl font-bold text-indigo-600 mb-6">
-					📋 Tasks for List {listId}
+					📋 Tasks for List
 				</h1>
 
 				{error && (
@@ -97,6 +108,25 @@ const Tasks = () => {
 						{error}
 					</div>
 				)}
+
+				{/* Filters */}
+				<div className="flex gap-3 mb-6">
+					<input
+						type="text"
+						value={search}
+						onChange={(e) => setSearch(e.target.value)}
+						placeholder="🔍 Search tasks..."
+						className="flex-1 border p-2 rounded"
+					/>
+					<select
+						value={sortPriority}
+						onChange={(e) => setSortPriority(e.target.value)}
+						className="border p-2 rounded">
+						<option value="">Sort by Priority</option>
+						<option value="priority">Low → High</option>
+						<option value="-priority">High → Low</option>
+					</select>
+				</div>
 
 				{/* إنشاء تاسك */}
 				<form
@@ -138,7 +168,7 @@ const Tasks = () => {
 										className={`font-medium ${
 											task.completed ? "line-through text-gray-400" : ""
 										}`}>
-										{task.title}
+										{task.description}
 									</p>
 									<small className="text-gray-500">
 										Priority: {task.priority}
@@ -146,13 +176,11 @@ const Tasks = () => {
 								</div>
 								<div className="flex gap-2">
 									<button
-										onClick={() => {
-											console.log(task);
-											handleComplete(task._id);
-										}}
+										onClick={() => handleComplete(task._id)}
 										className="px-2 py-1 text-xs bg-green-500 text-white rounded">
-										Complete
+										{task.completed ? "Undo" : "Complete"}
 									</button>
+
 									<button
 										onClick={() => {
 											handleDelete(task._id);
