@@ -22,22 +22,48 @@ exports.getAll = (Model) =>
 		const limit = parseInt(req.query.limit) || 20;
 		const skip = (page - 1) * limit;
 
-		const sortBy = req.query.sort
-			? req.query.sort.split(",").join(" ")
-			: "createdAt";
+		const search = req.query.search || "";
+		const query = {};
+		if (search) {
+			query.description = { $regex: search, $options: "i" };
+		}
+
 		const fields = req.query.fields
 			? req.query.fields.split(",").join(" ")
 			: "-__v";
 
-		const doc = await Model.find()
+		const sortBy = req.query.sort
+			? req.query.sort.split(",").join(" ")
+			: "-createdAt";
+
+		const priorityOrder = { High: 1, Medium: 2, Low: 3 };
+
+		const totalCount = await Model.countDocuments(query);
+
+		let doc = await Model.find(query)
 			.skip(skip)
 			.limit(limit)
-			.sort(sortBy)
-			.select(fields);
+			.select(fields)
+			.sort(sortBy);
 
-		res.status(200).json({ status: "success", results: doc.length, data: doc });
+		doc = doc.sort(
+			(a, b) => priorityOrder[a.priority] - priorityOrder[b.priority],
+		);
+
+		const totalPages = Math.ceil(totalCount / limit);
+
+		res.status(200).json({
+			status: "success",
+			results: doc.length,
+			data: doc,
+			meta: {
+				page,
+				limit,
+				totalPages,
+				totalCount,
+			},
+		});
 	});
-
 exports.UpdateOne = (Model) =>
 	asyncHandler(async (req, res, next) => {
 		const { id } = req.params;

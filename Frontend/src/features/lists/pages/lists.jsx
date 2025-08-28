@@ -180,7 +180,7 @@ const Lists = () => {
 					<div className="grid md:grid-cols-2 gap-6">
 						{lists.map((list) => (
 							<Link
-								to={`/lists/${list._id}/tasks`}
+								to={`/lists/${list._id}/uncompleted`}
 								key={list._id}
 								className="block">
 								<div

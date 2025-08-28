@@ -20,7 +20,14 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
+app.use(
+	cors({
+		origin: "http://localhost:5173", // السماح فقط للـ frontend
+		methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+		allowedHeaders: ["Content-Type", "Authorization"],
+		credentials: true, // لو بتبعت كوكيز أو jwt في الـ header
+	}),
+);
 app.use(express.json());
 
 // Logger

@@ -6,7 +6,8 @@ import VerifySignupPage from "../features/auth/pages/VerifySignup";
 import VerifyForgetPasswordPage from "../features/auth/pages/VerifyForgetPassword";
 import ResetPasswordPage from "../features/auth/pages/ResetPassword";
 import Lists from "../features/lists/pages/lists";
-import Task from "../features/tasks/pages/Task";
+import Uncompleted from "../features/tasks/pages/Uncompleted";
+import Completed from "../features/tasks/pages/completed";
 
 export default function AppRoutes() {
 	return (
@@ -24,7 +25,8 @@ export default function AppRoutes() {
 				<Route path="/lists" element={<Lists />} />
 
 				{/* route --> task */}
-				<Route path="/lists/:listId/tasks" element={<Task />} />
+				<Route path="/lists/:listId/uncompleted" element={<Uncompleted />} />
+				<Route path="/lists/:listId/completed" element={<Completed />} />
 			</Routes>
 		</BrowserRouter>
 	);
