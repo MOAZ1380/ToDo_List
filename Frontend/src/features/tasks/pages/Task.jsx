@@ -9,29 +9,35 @@ const Tasks = () => {
 	const [newPriority, setNewPriority] = useState("Low");
 	const [error, setError] = useState("");
 
-	// search + sort
+	// search فقط
 	const [search, setSearch] = useState("");
-	const [sortPriority, setSortPriority] = useState("");
+
+	// pagination
+	const [page, setPage] = useState(1);
+	const [limit] = useState(5);
+	const [totalPages, setTotalPages] = useState(1);
 
 	// fetch tasks
 	useEffect(() => {
 		const fetchTasks = async () => {
 			try {
-				const options = {};
+				const options = { page, limit };
 
 				if (search) options.search = search;
-				if (sortPriority) options.sort = sortPriority;
 
 				const res = await findAll(listId, options);
 				if (res.data?.status === "success") {
 					setTasks(res.data.data || []);
+					if (res.data.meta) {
+						setTotalPages(res.data.meta.totalPages);
+					}
 				}
 			} catch {
 				setError("⚠️ Failed to load tasks.");
 			}
 		};
 		fetchTasks();
-	}, [listId, search, sortPriority]);
+	}, [listId, search, page, limit]);
 
 	// create task
 	const handleCreate = async (e) => {
@@ -109,26 +115,20 @@ const Tasks = () => {
 					</div>
 				)}
 
-				{/* Filters */}
+				{/* Search فقط */}
 				<div className="flex gap-3 mb-6">
 					<input
 						type="text"
 						value={search}
-						onChange={(e) => setSearch(e.target.value)}
+						onChange={(e) => {
+							setPage(1); // رجع للصفحة الأولى لو غير البحث
+							setSearch(e.target.value);
+						}}
 						placeholder="🔍 Search tasks..."
 						className="flex-1 border p-2 rounded"
 					/>
-					<select
-						value={sortPriority}
-						onChange={(e) => setSortPriority(e.target.value)}
-						className="border p-2 rounded">
-						<option value="">Sort by Priority</option>
-						<option value="priority">Low → High</option>
-						<option value="-priority">High → Low</option>
-					</select>
 				</div>
 
-				{/* إنشاء تاسك */}
 				<form
 					onSubmit={handleCreate}
 					className="flex items-center gap-2 bg-white p-3 rounded shadow mb-6">
@@ -154,54 +154,74 @@ const Tasks = () => {
 					</button>
 				</form>
 
-				{/* قائمة المهام */}
 				{tasks.length === 0 ? (
 					<p className="text-gray-500">🚫 No tasks yet.</p>
 				) : (
-					<ul className="space-y-3">
-						{tasks.map((task) => (
-							<li
-								key={task._id}
-								className="bg-white p-4 rounded shadow flex justify-between items-center">
-								<div>
-									<p
-										className={`font-medium ${
-											task.completed ? "line-through text-gray-400" : ""
-										}`}>
-										{task.description}
-									</p>
-									<small className="text-gray-500">
-										Priority: {task.priority}
-									</small>
-								</div>
-								<div className="flex gap-2">
-									<button
-										onClick={() => handleComplete(task._id)}
-										className="px-2 py-1 text-xs bg-green-500 text-white rounded">
-										{task.completed ? "Undo" : "Complete"}
-									</button>
+					<>
+						<ul className="space-y-3">
+							{tasks.map((task) => (
+								<li
+									key={task._id}
+									className="bg-white p-4 rounded shadow flex justify-between items-center">
+									<div>
+										<p
+											className={`font-medium ${
+												task.completed ? "line-through text-gray-400" : ""
+											}`}>
+											{task.description}
+										</p>
+										<small className="text-gray-500">
+											Priority: {task.priority}
+										</small>
+									</div>
+									<div className="flex gap-2">
+										<button
+											onClick={() => handleComplete(task._id)}
+											className="px-2 py-1 text-xs bg-green-500 text-white rounded">
+											{task.completed ? "Undo" : "Complete"}
+										</button>
 
-									<button
-										onClick={() => {
-											handleDelete(task._id);
-										}}
-										className="px-2 py-1 text-xs bg-red-500 text-white rounded">
-										Delete
-									</button>
-									<select
-										value={task.priority}
-										onChange={(e) =>
-											handleUpdatePriority(task._id, e.target.value)
-										}
-										className="border rounded p-1 text-gray-600 text-xs">
-										<option value="Low">Low</option>
-										<option value="Medium">Medium</option>
-										<option value="High">High</option>
-									</select>
-								</div>
-							</li>
-						))}
-					</ul>
+										<button
+											onClick={() => {
+												handleDelete(task._id);
+											}}
+											className="px-2 py-1 text-xs bg-red-500 text-white rounded">
+											Delete
+										</button>
+										<select
+											value={task.priority}
+											onChange={(e) =>
+												handleUpdatePriority(task._id, e.target.value)
+											}
+											className="border rounded p-1 text-gray-600 text-xs">
+											<option value="Low">Low</option>
+											<option value="Medium">Medium</option>
+											<option value="High">High</option>
+										</select>
+									</div>
+								</li>
+							))}
+						</ul>
+
+						{/* Pagination Controls */}
+						<div className="flex justify-center items-center gap-3 mt-6">
+							<button
+								disabled={page === 1}
+								onClick={() => setPage((p) => p - 1)}
+								className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">
+								⬅ Prev
+							</button>
+							<span className="text-sm text-gray-600">
+								Page {page} of {totalPages}
+							</span>
+							<button
+								disabled={page === totalPages}
+								onClick={() => setPage((p) => p + 1)}
+								className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">
+								Next ➡
+							</button>
+						</div>
+					</>
 				)}
 			</div>
 		</div>
